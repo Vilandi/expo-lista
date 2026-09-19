@@ -5,17 +5,19 @@ import { styles } from "./styles";
 import { colors } from "../colors";
 
 interface Props {
+  onAlternar: (id: string) => void;
+  onRemover: (id: string) => void;
   produto: ProdutoItem;
 }
 
-export default function ProdutoListaItem({ produto }: Props) {
+export default function ProdutoListaItem({ produto, onAlternar, onRemover }: Props) {
   const comprado = produto.comprado;
 
   return (
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.nameRow}
-        onPress={() => {}}
+        onPress={() => onAlternar(produto.id)}
         // TODO(aluno): alternar produto.comprado ao tocar aqui (ex.: recebendo uma função via props que atualiza o estado da lista em ListaItens/App).
       >
         {comprado ? (
@@ -29,8 +31,7 @@ export default function ProdutoListaItem({ produto }: Props) {
       </TouchableOpacity>
 
       <TouchableOpacity
-        onPress={() => {}}
-        // TODO(aluno): remover este produto da lista ao tocar aqui (ex.: recebendo uma função via props que atualiza o estado da lista em ListaItens/App).
+        onPress={() => onRemover(produto.id)}        // TODO(aluno): remover este produto da lista ao tocar aqui (ex.: recebendo uma função via props que atualiza o estado da lista em ListaItens/App).
       >
         <Trash2 color={colors.textSecondary} strokeWidth={1} />
       </TouchableOpacity>
