@@ -6,56 +6,61 @@ import Header from "./components/Header/Header";
 import ListaItens from "./components/ListaItens/ListaItens";
 import { colors } from "./components/colors";
 import { useEffect, useState } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ProdutoItem } from "./interfaces/ProdutoItem";
-import { DATA } from "./components/ListaItens/ListaItens";
-
-const STORAGE_KEY = "shopping_list";
+import {
+  atualizarProduto,
+  criarProduto,
+  observarProdutos,
+  removerProduto,
+  removerProdutos,
+} from "./src/produtos";
 
 export default function App() {
   const [produtos, setProdutos] = useState<ProdutoItem[]>([]);
-  const [carregado, setCarregado] = useState(false);
-  useEffect(() => {
-    async function carregar() {
-      try {
-        const json = await AsyncStorage.getItem(STORAGE_KEY);
-        setProdutos(json !== null ? (JSON.parse(json) as ProdutoItem[]) : DATA);
-      } catch (erro) {
-        console.error("Erro ao carregar produtos", erro);
-      } finally {
-        setCarregado(true);
-      }
-    }
-    carregar();
-  }, []);
-  useEffect(() => {
-    if (!carregado) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(produtos)).catch(console.error);
-  }, [produtos, carregado]);
 
-  function adicionarProduto(nome: string){
+  // Assina a coleção "produtos": a tela atualiza sozinha a cada mudança.
+  useEffect(() => {
+    const cancelar = observarProdutos(setProdutos, (erro) =>
+      console.error("Erro ao observar produtos", erro)
+    );
+    return cancelar;
+  }, []);
+
+  async function adicionarProduto(nome: string) {
     const nomeLimpo = nome.trim();
     if (!nomeLimpo) return;
-    const novo: ProdutoItem = {
-      id: Date.now().toString(),
-      nome: nomeLimpo,
-      comprado: false,
-    };
-    setProdutos((atual) => [...atual, novo]);
+    try {
+      await criarProduto(nomeLimpo);
+    } catch (erro) {
+      console.error("Erro ao criar produto", erro);
+    }
   }
 
-  function alternarComprado(id: string){
-    setProdutos((atual) =>
-      atual.map((p) => (p.id === id ? {...p, comprado: !p.comprado}: p))
-    );
-  }
-  
-  function removerProduto(id: string){
-    setProdutos((atual) => atual.filter((p) => p.id !== id));
+  async function alternarComprado(id: string) {
+    const produto = produtos.find((p) => p.id === id);
+    if (!produto) return;
+    try {
+      await atualizarProduto(id, produto.nome, !produto.comprado);
+    } catch (erro) {
+      console.error("Erro ao atualizar produto", erro);
+    }
   }
 
-  function limparItens(comprados: boolean) {
-  setProdutos((atual) => atual.filter((p) => p.comprado !== comprados));
+  async function remover(id: string) {
+    try {
+      await removerProduto(id);
+    } catch (erro) {
+      console.error("Erro ao remover produto", erro);
+    }
+  }
+
+  async function limparItens(comprados: boolean) {
+    const ids = produtos.filter((p) => p.comprado === comprados).map((p) => p.id);
+    try {
+      await removerProdutos(ids);
+    } catch (erro) {
+      console.error("Erro ao limpar itens", erro);
+    }
   }
 
   return (
@@ -64,7 +69,7 @@ export default function App() {
         <StatusBar style="auto" />
         <Header />
         <Form onAdicionar={adicionarProduto}/>
-        <ListaItens produtos={produtos} onAlternar={alternarComprado} onRemover={removerProduto} onLimpar={limparItens}/>
+        <ListaItens produtos={produtos} onAlternar={alternarComprado} onRemover={remover} onLimpar={limparItens}/>
       </SafeAreaView>
     </SafeAreaProvider>
   );
