@@ -6,33 +6,6 @@ import { ProdutoItem } from "../../interfaces/ProdutoItem";
 import ProdutoListaItem from "../ProdutoListaItem/ProdutoListaItem";
 import { colors } from "../colors";
 
-export const DATA: ProdutoItem[] = [
-  {
-    id: "1",
-    nome: "Arroz (5kg)",
-    comprado: true,
-  },
-  {
-    id: "2",
-    nome: "Feijão Preto (1kg)",
-    comprado: false,
-  },
-  {
-    id: "3",
-    nome: "Macarrão Espaguete",
-    comprado: true,
-  },
-  {
-    id: "4",
-    nome: "Óleo de Soja",
-    comprado: false,
-  },
-  {
-    id: "5",
-    nome: "Açúcar Refinado",
-    comprado: false,
-  },
-];
 interface Props {
   produtos: ProdutoItem[];
   onAlternar: (id: string) => void;
